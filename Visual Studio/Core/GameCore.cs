@@ -51,29 +51,22 @@ namespace GrassRendering.Core
         /// The current mouse state
         /// </summary>
         public MouseState MouseState;
-
-        private readonly KeyboardManager keyboard;
-        private readonly MouseManager mouse;
-
         #endregion
 
         #region Public Methods
 
-        public GameCore(GraphicsDevice graphicsDevice, ContentManager contentManager, Camera camera, ShadowCamera shadowCamera, KeyboardManager keyboardManager, MouseManager mouseManager)
+        public GameCore(GraphicsDevice graphicsDevice, ContentManager contentManager, Camera camera, ShadowCamera shadowCamera)
         {
             this.GraphicsDevice = graphicsDevice;
             this.ContentManager = contentManager;
             this.Camera = camera;
             this.ShadowCamera = shadowCamera;
-
-            this.keyboard = keyboardManager;
-            this.mouse = mouseManager;
         }
 
         public void Update()
         {
-            this.KeyboardState = this.keyboard.GetState();
-            this.MouseState = this.mouse.GetState();
+            this.KeyboardState = InputController.Instance.Keyboard.GetState();
+            this.MouseState = InputController.Instance.Mouse.GetState();
         }
 
         #endregion

@@ -39,9 +39,7 @@ namespace GrassRendering
         private SkyBox skyBox;
 
         // Input
-        private readonly KeyboardManager keyboard;
         private KeyboardState keyboardState;
-        private readonly MouseManager mouse;
         private MouseState mouseState;
 
         #endregion
@@ -55,8 +53,8 @@ namespace GrassRendering
         {
             this.graphicsDeviceManager = new GraphicsDeviceManager(this)
             {
-                PreferredBackBufferWidth = 3840,
-                PreferredBackBufferHeight = 2400,
+                PreferredBackBufferWidth = 1920,
+                PreferredBackBufferHeight = 1080,
                 PreferMultiSampling = true,
                 IsFullScreen = true,
                 SynchronizeWithVerticalRetrace = false,
@@ -65,8 +63,7 @@ namespace GrassRendering
             Content.RootDirectory = "Content";
 
             // Input
-            this.keyboard = new KeyboardManager(this);
-            this.mouse = new MouseManager(this);
+            InputController.CreateInstance(this);
         }
 
         /// <summary>
@@ -87,10 +84,10 @@ namespace GrassRendering
             spriteBatch = ToDisposeContent(new SpriteBatch(GraphicsDevice));
 
             arial16Font = Content.Load<SpriteFont>("Fonts/Arial16");
-            camera = new Camera(this.GraphicsDevice, this.graphicsDeviceManager.PreferredBackBufferWidth, this.graphicsDeviceManager.PreferredBackBufferHeight, keyboard, mouse);
+            camera = new Camera(this.GraphicsDevice, this.graphicsDeviceManager.PreferredBackBufferWidth, this.graphicsDeviceManager.PreferredBackBufferHeight);
             shadowCamera = new ShadowCamera(this.graphicsDeviceManager.PreferredBackBufferWidth, this.graphicsDeviceManager.PreferredBackBufferHeight);
 
-            gameCore = new GameCore(this.GraphicsDevice, this.Content, this.camera, this.shadowCamera, this.keyboard, this.mouse);
+            gameCore = new GameCore(this.GraphicsDevice, this.Content, this.camera, this.shadowCamera);
 
             terrain = new Terrain(this.gameCore);
             grass = new GrassController(this.gameCore);
@@ -107,8 +104,8 @@ namespace GrassRendering
             base.Update(gameTime);
 
             gameCore.Update();
-            keyboardState = keyboard.GetState();
-            mouseState = mouse.GetState();
+            keyboardState = InputController.Instance.Keyboard.GetState();
+            mouseState = InputController.Instance.Mouse.GetState();
             camera.Update(gameTime, this.IsActive);
             grass.Update(gameTime);
         }

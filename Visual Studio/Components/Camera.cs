@@ -30,20 +30,14 @@ namespace GrassRendering.Components
 
         public int BackBufferWidth { get; set; }
         public int BackBufferHeight { get; set; }
-
-        private readonly KeyboardManager keyboard;
-        private readonly MouseManager mouse;
         #endregion
 
         #region Public Methods
 
-        public Camera(GraphicsDevice graphicsDevice, int backBufferWidth, int backBufferHeight, KeyboardManager keyboard, MouseManager mouse)
+        public Camera(GraphicsDevice graphicsDevice, int backBufferWidth, int backBufferHeight)
         {
             this.BackBufferWidth = backBufferWidth;
             this.BackBufferHeight = backBufferHeight;
-
-            this.keyboard = keyboard;
-            this.mouse = mouse;
 
             // Create default camera position
             this.Position = new Vector3(256, 0, 256);
@@ -53,8 +47,8 @@ namespace GrassRendering.Components
             this.View = Matrix.LookAtRH(this.Position, new Vector3(0, 0, 0), Vector3.UnitY);
             this.Projection = Matrix.PerspectiveFovRH(0.9f, (float)graphicsDevice.BackBuffer.Width / graphicsDevice.BackBuffer.Height, 0.1f, 10000.0f);
 
-            mouse.SetPosition(new Vector2(0.5f, 0.5f));
-            originalMouseState = mouse.GetState();
+            InputController.Instance.Mouse.SetPosition(new Vector2(0.5f, 0.5f));
+            originalMouseState = InputController.Instance.Mouse.GetState();
         }
 
         public void Update(GameTime gameTime, bool isActive)
@@ -62,7 +56,7 @@ namespace GrassRendering.Components
             float amount = (float)gameTime.ElapsedGameTime.TotalMilliseconds / 1000.0f;
 
             // Handle mouse input
-            MouseState currentMouseState = mouse.GetState();
+            MouseState currentMouseState = InputController.Instance.Mouse.GetState();
             if (currentMouseState != originalMouseState)
             {
                 float xDifference = (currentMouseState.X * BackBufferWidth) - (originalMouseState.X * BackBufferWidth);
@@ -72,14 +66,14 @@ namespace GrassRendering.Components
 
                 if (isActive)
                 {
-                    mouse.SetPosition(new Vector2(0.5f, 0.5f));
+                    InputController.Instance.Mouse.SetPosition(new Vector2(0.5f, 0.5f));
                     UpdateViewMatrix();              
                 }
             }
 
             // Handle keyboard input
             Vector3 moveVector = new Vector3(0, 0, 0);
-            KeyboardState keyState = keyboard.GetState();
+            KeyboardState keyState = InputController.Instance.Keyboard.GetState();
             if (keyState.IsKeyDown(Keys.Up) || keyState.IsKeyDown(Keys.W))
             {
                 moveVector += new Vector3(0, 0, -1);
@@ -105,7 +99,7 @@ namespace GrassRendering.Components
                 moveVector += new Vector3(0, 1, 0);                
             }
 
-            if (keyState.IsKeyDown(Keys.Y))
+            if (keyState.IsKeyDown(Keys.LeftControl))
             {
                 moveVector += new Vector3(0, -1, 0);                
             }
