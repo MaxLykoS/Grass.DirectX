@@ -84,7 +84,7 @@ namespace GrassRendering.Grass
         /// </summary>
         public void Update(GameTime gameTime)
         {
-            if (this.core.KeyboardState.IsKeyPressed(Keys.F5))
+            if (InputController.Instance.Keyboard.GetState().IsKeyPressed(Keys.F5))
             {
                 this.effect = this.core.ContentManager.Load<Effect>("Effects/Grass");
             }

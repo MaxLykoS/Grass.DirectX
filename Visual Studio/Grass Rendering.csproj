@@ -95,6 +95,7 @@
     <Compile Include="Components\InputController.cs" />
     <Compile Include="Components\ShadowCamera.cs" />
     <Compile Include="Core\GameCore.cs" />
+    <Compile Include="Core\GameObject.cs" />
     <Compile Include="Environment\Terrain.cs" />
     <Compile Include="Grass\Grass.cs" />
     <Compile Include="Environment\SkyBox.cs" />

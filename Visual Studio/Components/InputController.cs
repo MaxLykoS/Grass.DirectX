@@ -5,24 +5,7 @@ namespace GrassRendering.Components
 {
     class InputController
     {
-        public static InputController Instance { get { return instance; } }
-        private static InputController instance;
-
-        public static bool Created { get { return created; } }
-        private static bool created;
-
-        public KeyboardManager Keyboard { get { return keyboard; } }
-        private KeyboardManager keyboard;
-
-        public MouseManager Mouse { get { return mouse; } }
-        private MouseManager mouse;
-
-        private InputController(Game game)
-        {
-            this.keyboard = new KeyboardManager(game);
-            this.mouse = new MouseManager(game);
-        }
-
+        public static InputController Instance { get; private set; }
         public static void CreateInstance(Game game)
         {
             if (Created)
@@ -31,9 +14,17 @@ namespace GrassRendering.Components
             }
             else
             {
-                instance = new InputController(game);
-                created = true;
+                Instance = new InputController(game);
+                Created = true;
             }
+        }
+        public static bool Created { get; private set; }
+        public KeyboardManager Keyboard { get; private set; }
+        public MouseManager Mouse { get; private set; }
+        private InputController(Game game)
+        {
+            this.Keyboard = new KeyboardManager(game);
+            this.Mouse = new MouseManager(game);
         }
     }
 }

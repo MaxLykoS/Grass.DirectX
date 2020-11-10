@@ -41,16 +41,6 @@ namespace GrassRendering.Core
         /// The shadow camera
         /// </summary>
         public ShadowCamera ShadowCamera { get; private set; }
-
-        /// <summary>
-        /// The current keyboard state
-        /// </summary>
-        public KeyboardState KeyboardState;
-
-        /// <summary>
-        /// The current mouse state
-        /// </summary>
-        public MouseState MouseState;
         #endregion
 
         #region Public Methods
@@ -62,13 +52,6 @@ namespace GrassRendering.Core
             this.Camera = camera;
             this.ShadowCamera = shadowCamera;
         }
-
-        public void Update()
-        {
-            this.KeyboardState = InputController.Instance.Keyboard.GetState();
-            this.MouseState = InputController.Instance.Mouse.GetState();
-        }
-
         #endregion
     }
 }

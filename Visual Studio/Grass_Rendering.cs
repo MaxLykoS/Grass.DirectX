@@ -37,11 +37,6 @@ namespace GrassRendering
         private Terrain terrain;
         private GrassController grass;
         private SkyBox skyBox;
-
-        // Input
-        private KeyboardState keyboardState;
-        private MouseState mouseState;
-
         #endregion
 
         #region Public Methods
@@ -84,7 +79,7 @@ namespace GrassRendering
             spriteBatch = ToDisposeContent(new SpriteBatch(GraphicsDevice));
 
             arial16Font = Content.Load<SpriteFont>("Fonts/Arial16");
-            camera = new Camera(this.GraphicsDevice, this.graphicsDeviceManager.PreferredBackBufferWidth, this.graphicsDeviceManager.PreferredBackBufferHeight);
+            camera = new Camera(this.graphicsDeviceManager.PreferredBackBufferWidth, this.graphicsDeviceManager.PreferredBackBufferHeight);
             shadowCamera = new ShadowCamera(this.graphicsDeviceManager.PreferredBackBufferWidth, this.graphicsDeviceManager.PreferredBackBufferHeight);
 
             gameCore = new GameCore(this.GraphicsDevice, this.Content, this.camera, this.shadowCamera);
@@ -103,10 +98,8 @@ namespace GrassRendering
         {
             base.Update(gameTime);
 
-            gameCore.Update();
-            keyboardState = InputController.Instance.Keyboard.GetState();
-            mouseState = InputController.Instance.Mouse.GetState();
-            camera.Update(gameTime, this.IsActive);
+            camera.Update(this.IsActive);
+            shadowCamera.Update();
             grass.Update(gameTime);
         }
 
@@ -122,7 +115,7 @@ namespace GrassRendering
             this.SetUpRasterizerState();
 
             // Input
-            if (keyboardState.IsKeyDown(Keys.Escape))
+            if (InputController.Instance.Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
                 this.Exit();
             }
