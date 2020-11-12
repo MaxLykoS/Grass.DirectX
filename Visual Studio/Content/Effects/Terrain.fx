@@ -19,8 +19,8 @@ float AmbientIntensity;
 float3 DiffuseColor;
 float DiffuseIntensity;
 
-float3 LightPosition;
-float3 CameraPosition;
+float3 LightDirection;
+float3 CameraWorldPos;
 
 float TileFactor = 40.0f;
 
@@ -32,39 +32,35 @@ struct VSINPUT
 };
 
 struct PSINPUT {
-	float4 Position : SV_POSITION;
-	float3 Normal	: NORMAL0;
-	float4 Color	: COLOR0;
+    float3 WorldPos : Position;
+	float3 WorldNormal	: NORMAL0;
 	float2 TexCoord	: TEXCOORD0;
-	float3 VertexToLight : NORMAL1;
-	float3 VertexToCamera : NORMAL2;
+    float4 Position : SV_POSITION;
 };
 
 void VS_Shader(in VSINPUT input, out PSINPUT output)
 {
-	float4 worldPosition = mul(input.Position, World);
-	float4 viewPosition = mul(worldPosition, View);
-	output.Position = mul(viewPosition, Projection);
+    output.WorldPos = mul(input.Position, World);
+    output.WorldNormal = mul(input.Normal, (float3x3)World);
 	output.TexCoord = input.TexCoord;
-	output.VertexToLight = normalize(LightPosition - worldPosition.xyz);
-	output.VertexToCamera = normalize(CameraPosition - worldPosition.xyz);
-	output.Normal = input.Normal;
-	output.Color = float4(input.Normal.rgb * 0.5 + 0.5, 1);
+	
+    output.Position = (float4) mul(mul(float4(output.WorldPos,1.0f), View), Projection);
 }
 
 float4 PS_Shader(in PSINPUT input) : SV_TARGET
 {
-	float ambientLight = 0.1f;
-
-	float diffuseLight = saturate(dot(input.VertexToLight, input.Normal));
-	float3 textureColor = Texture.Sample(TextureSampler, frac(input.TexCoord * TileFactor)).rgb * diffuseLight;
-
-	float3 reflectVector = normalize(reflect(input.VertexToLight.xyz, input.Normal.xyz));
-	float specularLight = saturate(dot(-input.VertexToCamera, reflectVector));
-	specularLight = pow(specularLight, 100);
-
-    float3 outputColor = ambientLight + textureColor  + float3(0.6, 0.2, 0) * specularLight ;
-	return float4(outputColor * 0.05, 1);
+    input.WorldNormal = normalize(input.WorldNormal);
+    
+    float3 toEyeW = normalize(CameraWorldPos - input.WorldPos);
+    float3 ambient, diffuse, spec;
+    float3 texColor = Texture.Sample(TextureSampler, input.TexCoord).rgb;
+	
+    ambient = 0.5f;
+    diffuse = saturate(dot(-LightDirection, input.WorldNormal)) * 0.1f;
+    spec = 0.1f * pow(saturate(dot(reflect(LightDirection, input.WorldNormal), toEyeW)),100);
+	
+    float3 litColor = saturate(ambient * texColor + (spec + diffuse));
+    return float4(litColor,1.0f);
 }
 
 technique Technique1

@@ -123,7 +123,7 @@ namespace GrassRendering
             // Objects
             skyBox.Draw(camera);
             terrain.Draw(camera);
-            grass.Draw(gameTime, camera);
+            //grass.Draw(gameTime, camera);
 
             // Draw string (Mouse position and FPS)
             spriteBatch.Begin();
@@ -174,12 +174,11 @@ namespace GrassRendering
             RasterizerStateDescription stateDescription = new RasterizerStateDescription
             {
                 FillMode = FillMode.Solid,
-                CullMode = CullMode.None
+                CullMode = CullMode.None     
             };
 
             this.GraphicsDevice.SetRasterizerState(RasterizerState.New(this.GraphicsDevice, stateDescription));
         }
-
         #endregion
     }
 }

@@ -17,6 +17,7 @@ namespace GrassRendering.Environment
         private GameCore core;
         private Texture2D texture;
         private Effect effect;
+        private const int TEXTURE_REPEAT = 2;
 
         private VertexPositionNormalTexture[] vertices;
         private int[] indices;
@@ -38,9 +39,8 @@ namespace GrassRendering.Environment
         {
             this.core = core;
             this.effect = this.core.ContentManager.Load<Effect>("Effects/Terrain");
-            this.texture = this.core.ContentManager.Load<Texture2D>("Textures/Terrain/grass");
+            this.texture = this.core.ContentManager.Load<Texture2D>("Textures/Terrain/black");
             this.heightMap = this.core.ContentManager.Load<Texture2D>("Textures/Terrain/heightMap512");
-
             nIndices = (this.heightMap.Width - 1) * (this.heightMap.Height - 1) * 6;
 
             LoadHeightData(this.heightMap);
@@ -75,14 +75,39 @@ namespace GrassRendering.Environment
         {
             int width = heightMap.Width;
             int height = heightMap.Height;
-            vertices = new VertexPositionNormalTexture[width*height];
+            int incrementCount, tuCount, tvCount;
+            float incrementValue, tuCoordinate, tvCoordinate;
+            incrementValue = (float)TEXTURE_REPEAT / (float)height;
+            incrementCount = height / TEXTURE_REPEAT;
+            tuCoordinate = 0.0f;
+            tvCoordinate = 1.0f;
+            tuCount = 0;
+            tvCount = 0;
+            vertices = new VertexPositionNormalTexture[width * height];
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
                 {
-                    Vector2 uv = new Vector2((float) x/width, (float) y/height);
-                    vertices[x + y*width] = new VertexPositionNormalTexture(new Vector3(x, heightData[x, y], y),
-                        Vector3.Up, uv);
+                    Vector2 uv = new Vector2(tuCoordinate,tvCoordinate);
+                    vertices[x + y*width] = new VertexPositionNormalTexture(
+                        new Vector3(x, heightData[x, y], y),
+                        Vector3.Up, 
+                        uv);
+
+                    tvCoordinate -= incrementValue;
+                    tvCount++;
+                    if (tvCount == incrementCount)
+                    {
+                        tvCoordinate = 1.0f;
+                        tvCount = 0;
+                    }
+                }
+                tuCoordinate += incrementValue;
+                tuCount++;
+                if (tuCount == incrementCount)
+                {
+                    tuCoordinate = 0.0f;
+                    tuCount = 0;
                 }
             }
 
@@ -124,7 +149,6 @@ namespace GrassRendering.Environment
         {
             for (int i = 0; i < nIndices; i += 3)
             {
-
                 // Find the position of each corner of the triangle
                 Vector3 v1 = vertices[indices[i]].Position;
                 Vector3 v2 = vertices[indices[i + 1]].Position;
@@ -142,25 +166,22 @@ namespace GrassRendering.Environment
             }
 
             // Average the influences of the triangles touching each
-            // vertex
-            for (int i = 0; i < vertices.Length; i++){
+                // vertex
+            for (int i = 0; i < vertices.Length; i++)
+            {
                 vertices[i].Normal.Normalize();
+            }
+            this.vertexBuffer = Buffer.Vertex.New(this.core.GraphicsDevice, vertices);
         }
 
-        this.vertexBuffer = Buffer.Vertex.New(this.core.GraphicsDevice, vertices);
-
-    }
-
-
-
-public void Draw(Camera camera)
+        public void Draw(Camera camera)
         {
             this.effect.Parameters["World"].SetValue(Matrix.Identity);
             this.effect.Parameters["View"].SetValue(camera.View);
             this.effect.Parameters["Projection"].SetValue(camera.Projection);
             this.effect.Parameters["Texture"].SetResource(this.texture);
-            this.effect.Parameters["LightPosition"].SetValue(this.core.ShadowCamera.Position);
-            this.effect.Parameters["CameraPosition"].SetValue(this.core.Camera.Position);
+            this.effect.Parameters["LightDirection"].SetValue(new Vector3(-0.5f, -0.86602f,0));
+            this.effect.Parameters["CameraWorldPos"].SetValue(this.core.Camera.Position);
 
             this.core.GraphicsDevice.SetVertexBuffer(this.vertexBuffer);
             this.core.GraphicsDevice.SetIndexBuffer(this.indexBuffer, true);
