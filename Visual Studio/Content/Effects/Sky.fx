@@ -35,12 +35,8 @@ struct VSOUTPUT {
 
 void VS_Shader(in VSINPUT input, out VSOUTPUT output)
 {
-	float4 worldPosition = mul(input.Position, World);
-    float4 viewPosition = mul(worldPosition, View);
-    output.Position = mul(viewPosition, Projection);
- 
-    float4 VertexPosition = mul(input.Position, World);
-    output.TextureCoordinate = VertexPosition - CameraPosition;
+    output.Position = mul(mul(mul(input.Position, World), View),Projection);
+    output.TextureCoordinate = mul(input.Position, World) - CameraPosition;
 }
 
 float4 PS_Shader(in VSOUTPUT input) : SV_TARGET

@@ -168,6 +168,9 @@
     <ToolkitTexture Include="Content\Textures\Terrain\black.jpg" />
     <ToolkitTexture Include="Content\Textures\Terrain\dirt.dds" />
   </ItemGroup>
+  <ItemGroup>
+    <ToolkitTexture Include="Content\Textures\Terrain\gras.jpg" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="packages\SharpDX.2.6.2\build\SharpDX.targets" Condition="Exists('packages\SharpDX.2.6.2\build\SharpDX.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

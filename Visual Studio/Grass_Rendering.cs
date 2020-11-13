@@ -123,7 +123,7 @@ namespace GrassRendering
             // Objects
             skyBox.Draw(camera);
             terrain.Draw(camera);
-            //grass.Draw(gameTime, camera);
+            grass.Draw(gameTime, camera);
 
             // Draw string (Mouse position and FPS)
             spriteBatch.Begin();

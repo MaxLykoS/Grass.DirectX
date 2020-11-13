@@ -17,7 +17,7 @@ namespace GrassRendering.Environment
         private GameCore core;
         private Texture2D texture;
         private Effect effect;
-        private const int TEXTURE_REPEAT = 2;
+        private const int TEXTURE_REPEAT = 8;
 
         private VertexPositionNormalTexture[] vertices;
         private int[] indices;
@@ -39,7 +39,7 @@ namespace GrassRendering.Environment
         {
             this.core = core;
             this.effect = this.core.ContentManager.Load<Effect>("Effects/Terrain");
-            this.texture = this.core.ContentManager.Load<Texture2D>("Textures/Terrain/black");
+            this.texture = this.core.ContentManager.Load<Texture2D>("Textures/Terrain/dirt");
             this.heightMap = this.core.ContentManager.Load<Texture2D>("Textures/Terrain/heightMap512");
             nIndices = (this.heightMap.Width - 1) * (this.heightMap.Height - 1) * 6;
 
@@ -73,6 +73,7 @@ namespace GrassRendering.Environment
 
         private void SetUpVertices()
         {
+            bool vdec = true, uinc = true;
             int width = heightMap.Width;
             int height = heightMap.Height;
             int incrementCount, tuCount, tvCount;
@@ -88,26 +89,27 @@ namespace GrassRendering.Environment
             {
                 for (int y = 0; y < height; y++)
                 {
-                    Vector2 uv = new Vector2(tuCoordinate,tvCoordinate);
-                    vertices[x + y*width] = new VertexPositionNormalTexture(
+                    Vector2 uv = new Vector2(tuCoordinate, tvCoordinate);
+                    vertices[x + y * width] = new VertexPositionNormalTexture(
                         new Vector3(x, heightData[x, y], y),
-                        Vector3.Up, 
+                        Vector3.Up,
                         uv);
-
-                    tvCoordinate -= incrementValue;
+                    tvCoordinate = vdec ? tvCoordinate - incrementValue : tvCoordinate + incrementValue;
                     tvCount++;
                     if (tvCount == incrementCount)
                     {
-                        tvCoordinate = 1.0f;
+                        tvCoordinate = vdec ? 0.0f : 1.0f;
                         tvCount = 0;
+                        vdec = !vdec;
                     }
                 }
-                tuCoordinate += incrementValue;
+                tuCoordinate = uinc ? tuCoordinate + incrementValue : tuCoordinate - incrementValue;
                 tuCount++;
                 if (tuCount == incrementCount)
                 {
-                    tuCoordinate = 0.0f;
+                    tuCoordinate = uinc ? 1.0f : 0.0f;
                     tuCount = 0;
+                    uinc = !uinc;
                 }
             }
 
