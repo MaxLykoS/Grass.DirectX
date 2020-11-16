@@ -9,6 +9,7 @@ namespace GrassRendering.Grass
     // Use these namespaces here to override SharpDX.Direct3D11
     using SharpDX.Toolkit;
     using SharpDX.Toolkit.Graphics;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Main class for creating and rendering the grass
@@ -33,6 +34,9 @@ namespace GrassRendering.Grass
 
         private readonly float terrainSize = 1024;
         private Wind[,] windField;
+
+        private Dictionary<int, BoundingSphere> boundingDict = new Dictionary<int, BoundingSphere>();
+        private readonly float BOUNDING_RADUIS = 7.0f;
 
         #endregion
 
@@ -78,17 +82,12 @@ namespace GrassRendering.Grass
             this.terrainSize = this.terrainHeightMap.Width;
             this.GenerateField();
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
         public void Update(GameTime gameTime)
         {
-            if (InputController.Instance.Keyboard.GetState().IsKeyPressed(Keys.F5))
-            {
-                this.effect = this.core.ContentManager.Load<Effect>("Effects/Grass");
-            }
-
             this.boundingFrustum = new BoundingFrustum(this.core.Camera.View * this.core.Camera.Projection);
             this.UpdateWind(gameTime);
         }
@@ -114,16 +113,11 @@ namespace GrassRendering.Grass
             this.core.GraphicsDevice.SetVertexInputLayout(this.vertexInputLayout);
 
             // Draw patches
-            int startRoot = 0;
             for (int i = 0; i < this.NumberOfPatches; i++)
             {
-                BoundingSphere boundingSphere = new BoundingSphere(this.vertices[startRoot + this.NumberOfRootsInPatch / 2].Position, 7.0f);
-
-                if (!this.boundingFrustum.Intersects(ref boundingSphere))
-                {
-                    startRoot += this.NumberOfRootsInPatch;
-                }
-                else
+                int startRoot = i * this.NumberOfRootsInPatch;
+                BoundingSphere boundingSphere = boundingDict[i];
+                if (this.boundingFrustum.Intersects(ref boundingSphere))
                 {
                     // Wind
                     int patchX = (i / this.NumberOfPatchRows);
@@ -137,7 +131,7 @@ namespace GrassRendering.Grass
                     cameraPosition.Y = 0;
                     Vector3 difference = cameraPosition - this.vertices[startRoot].Position;
                     float distance = difference.Length();
-                    int rootsToDraw = this.NumberOfRootsInPatch - (int) (distance * 0.4f);
+                    int rootsToDraw = this.NumberOfRootsInPatch - (int)(distance * 0.4f);
 
                     #region Level of Detail
 
@@ -169,7 +163,6 @@ namespace GrassRendering.Grass
                     #endregion
 
                     this.core.GraphicsDevice.Draw(PrimitiveType.PointList, rootsToDraw, startRoot);
-                    startRoot += this.NumberOfRootsInPatch;
                 }
             }
         }
@@ -215,6 +208,9 @@ namespace GrassRendering.Grass
             {
                 for (int y = 0; y < this.NumberOfPatchRows; y++)
                 {
+                    Vector3 _centerPos = new Vector3(startPosition.X + patchSize.X / 2, heightData[(int)(startPosition.X + patchSize.X / 2), (int)(startPosition.Z + patchSize.Z / 2)], startPosition.Z + patchSize.Z / 2);
+                    boundingDict[x * this.NumberOfPatchRows + y] = new BoundingSphere(_centerPos, BOUNDING_RADUIS);
+
                     currentVertex = this.GeneratePatch(startPosition, patchSize, currentVertex, rnd);
                     startPosition.X += patchSize.X;
                 }
@@ -242,11 +238,11 @@ namespace GrassRendering.Grass
             for (var i = 0; i < this.NumberOfRootsInPatch; i++)
             {
                 // Generate random numbers within the patch size
-                var randomizedZDistance = (float) rnd.NextDouble(0, patchSize.Z);
-                var randomizedXDistance = (float) rnd.NextDouble(0, patchSize.X);
-   
-                int indexX = (int)((startPosition.X + randomizedXDistance));
-                int indexZ = (int)((startPosition.Z + randomizedZDistance));
+                var randomizedZDistance = (float)rnd.NextDouble(0, patchSize.Z);
+                var randomizedXDistance = (float)rnd.NextDouble(0, patchSize.X);
+
+                int indexX = (int)(startPosition.X + randomizedXDistance);
+                int indexZ = (int)(startPosition.Z + randomizedZDistance);
 
                 if (indexX >= terrainSize)
                 {
@@ -282,7 +278,7 @@ namespace GrassRendering.Grass
                 for (int x = 0; x < width; x++)
                 {
                     PixelData.R8G8B8A8 pixel = image.PixelBuffer[0].GetPixel<PixelData.R8G8B8A8>(x, y);
-                    heightData[x, y] = (pixel.R - 225f)/5f;
+                    heightData[x, y] = (pixel.R - 225f) / 5f;
                 }
             }
         }
@@ -298,9 +294,7 @@ namespace GrassRendering.Grass
             {
                 for (int y = 0; y < this.NumberOfPatchRows; y++)
                 {
-                    this.windField[x, y] = new Wind(Vector2.Zero, new Vector2((float)x / this.NumberOfPatchRows + 0.1f, (float)y / this.NumberOfPatchRows));
                     this.windField[x, y] = new Wind(Vector2.Zero, new Vector2(1, 0));
-
                 }
             }
         }
@@ -319,7 +313,7 @@ namespace GrassRendering.Grass
                     wind.Velocity.Saturate();
 
                     // Calculate new velocity
-                    wind.Velocity = wind.Velocity + (wind.Acceleration * (float) gameTime.ElapsedGameTime.TotalMilliseconds);
+                    wind.Velocity = wind.Velocity + (wind.Acceleration * (float)gameTime.ElapsedGameTime.TotalMilliseconds);
 
                     // TODO: Dampen the acceleration vector
                     //wind.Acceleration = new Vector2(wind.Acceleration.X - (float) gameTime.ElapsedGameTime.TotalSeconds / 1000.0f, wind.Acceleration.Y - (float) gameTime.ElapsedGameTime.TotalSeconds / 1000.0f);
